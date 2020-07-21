@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.2.1] — 2020-07-15
+### Changed
+- Fix issue with "add" when no path is provided #10 (Contributed by @smithtim)
+
 ## [0.2.0] — 2019-07-29
 ### Added
 - Allow skipping patches on some schemas (Fixes #6)
@@ -19,4 +23,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [0.1.0]: https://github.com/rkaippully/scim-patch/compare/0.0.0...0.1.0
 [0.2.0]: https://github.com/rkaippully/scim-patch/compare/0.1.0...0.2.0
-[Unreleased]: https://github.com/rkaippully/scim-patch/compare/0.2.0...HEAD
+[0.2.1]: https://github.com/rkaippully/scim-patch/compare/0.2.0...0.2.1
+[Unreleased]: https://github.com/rkaippully/scim-patch/compare/0.2.1...HEAD
