@@ -1,23 +1,26 @@
 (ns scim-patch.core
   (:require [clojure.string :as s]
             [scim-patch.paths :as paths]
-            [scim-patch.filter :as fltr]))
+            [scim-patch.filter :as fltr])
+  (:import (clojure.lang ExceptionInfo)))
 
 (defn handle-attr-path-levels
   [schema resource update-fn [attr & attrs]]
   (let [attr-key (keyword attr)
         schema'  (get-in schema [:attributes attr-key])]
     (when (nil? schema')
-      (throw (ex-info (str "Invalid path element: " attr)
-               {:status   400
-                :scimType :invalidPath})))
+      (throw (ex-info (str "Invalid path element")
+                      {:status   400
+                       :scimType :invalidPath
+                       :path attr})))
     (if (empty? attrs)
       (update-fn resource attr schema')
       (do
         (when (:multi-valued schema')
-          (throw (ex-info (str "Unexpected multivalued path element: " attr)
-                   {:status   400
-                    :scimType :invalidPath})))
+          (throw (ex-info (str "Unexpected multivalued path element")
+                          {:status   400
+                           :scimType :invalidPath
+                           :path attr})))
         (update resource attr-key #(handle-attr-path-levels (:type schema') (or % {}) update-fn attrs))))))
 
 (defn handle-attr-path
@@ -39,23 +42,28 @@
 
 (defn handle-operation
   [schema resource {:keys [path value]} attr-path-fn value-path-fn]
-  (if (s/blank? path)
-    ;; no path, so handle each attribute separately
-    (reduce (fn [r [k v]]
-              (handle-operation schema r {:path (name k) :value v} attr-path-fn value-path-fn))
-            resource value)
-    ;; path provided
-    (let [[_ xs] (paths/parse path)]
-      (case (first xs)
-        :attrPath
-        (let [[uri attr subattr] (paths/extract-attr-path xs)]
-          (handle-attr-path schema resource uri attr subattr
-            (partial attr-path-fn value)))
-        :valuePath
-        (let [[_ attr-path value-filter subattr2] xs
-              [uri attr subattr]                  (paths/extract-attr-path attr-path)]
-          (handle-attr-path schema resource uri attr subattr
-            (partial value-path-fn value value-filter subattr2)))))))
+  (try
+    (if (s/blank? path)
+      ;; no path, so handle each attribute separately
+      (reduce (fn [r [k v]]
+                (handle-operation schema r {:path (name k) :value v} attr-path-fn value-path-fn))
+              resource value)
+      ;; path provided
+      (let [[_ xs] (paths/parse path)]
+        (case (first xs)
+          :attrPath
+          (let [[uri attr subattr] (paths/extract-attr-path xs)]
+            (handle-attr-path schema resource uri attr subattr
+                              (partial attr-path-fn value)))
+          :valuePath
+          (let [[_ attr-path value-filter subattr2] xs
+                [uri attr subattr]                  (paths/extract-attr-path attr-path)]
+            (handle-attr-path schema resource uri attr subattr
+                              (partial value-path-fn value value-filter subattr2))))))
+    (catch ExceptionInfo e
+      (throw (ex-info (.getMessage e)
+                      (-> (ex-data e)
+                          (assoc :path path)))))))
 
 (defn value-for-add
   [schema old-val new-val]
@@ -83,9 +91,10 @@
         (let [subattr-key (keyword subattr)
               schema'     (get-in schema [:type :attributes subattr-key])]
           (when (nil? schema')
-            (throw (ex-info (str "Invalid path element: " subattr)
-                     {:status   400
-                      :scimType :invalidPath})))
+            (throw (ex-info (str "Invalid path element")
+                            {:status   400
+                             :scimType :invalidPath
+                             :path subattr})))
           (update old-val subattr-key #(value-for-add schema' % new-val))))
       old-val)))
 
@@ -93,17 +102,27 @@
   [schema resource opr]
   (letfn [(add-attr-path
             [value res attr sch]
-            (update res (keyword attr) #(value-for-add sch % value)))
+            (try
+              (update res (keyword attr) #(value-for-add sch % value))
+              (catch ExceptionInfo e
+                (throw (ex-info (.getMessage e)
+                                (-> (ex-data e)
+                                    (assoc :path (:path opr))))))))
 
           (add-value-path
             [value value-filter subattr res attr sch]
             (when-not (:multi-valued sch)
               (throw (ex-info "Value filter can only be applied on multivalued attributes"
-                       {:status   400
-                        :scimType :invalidFilter})))
-            (update res (keyword attr)
-              #(doall (mapv (filter-and-add sch value value-filter subattr) %))))]
-
+                              {:status   400
+                               :scimType :invalidFilter
+                               :path (:path opr)})))
+            (try
+              (update res (keyword attr)
+                      #(doall (mapv (filter-and-add sch value value-filter subattr) %)))
+              (catch ExceptionInfo e
+                (throw (ex-info (.getMessage e)
+                                (-> (ex-data e)
+                                    (assoc :path (:path opr))))))))]
     (handle-operation schema resource opr add-attr-path add-value-path)))
 
 (defn filter-and-remove
@@ -115,9 +134,10 @@
         (let [subattr-key (keyword subattr)
               schema'     (get-in schema [:type :attributes subattr-key])]
           (when (nil? schema')
-            (throw (ex-info (str "Invalid path element: " subattr)
-                     {:status   400
-                      :scimType :invalidPath})))
+            (throw (ex-info (str "Invalid path element")
+                            {:status   400
+                             :scimType :invalidPath
+                             :path subattr})))
           (conj acc (dissoc old-val subattr-key))))
       (conj acc old-val))))
 
@@ -159,15 +179,16 @@
     (if (fltr/match-filter? schema value-filter old-val)
       {:replaced? true
        :value     (conj value
-                    (if (s/blank? subattr)
-                      new-val
-                      (let [subattr-key (keyword subattr)
-                            schema'     (get-in schema [:type :attributes subattr-key])]
-                        (when (nil? schema')
-                          (throw (ex-info (str "Invalid path element: " subattr)
-                                   {:status   400
-                                    :scimType :invalidPath})))
-                        (assoc old-val subattr-key (value-for-replace schema' new-val)))))}
+                        (if (s/blank? subattr)
+                          new-val
+                          (let [subattr-key (keyword subattr)
+                                schema'     (get-in schema [:type :attributes subattr-key])]
+                            (when (nil? schema')
+                              (throw (ex-info (str "Invalid path element")
+                                              {:status   400
+                                               :scimType :invalidPath
+                                               :path subattr})))
+                            (assoc old-val subattr-key (value-for-replace schema' new-val)))))}
 
       ;; Filter did not match
       {:replaced? replaced? :value (conj value old-val)})))
@@ -204,9 +225,10 @@
       "add"     (op-add schema resource op)
       "remove"  (op-remove schema resource op)
       "replace" (op-replace schema resource op)
-      (throw (ex-info (str "Invalid operation: " (:op op)) {:status 400 :scimType :invalidSyntax})))
+      (throw (ex-info (str "Invalid operation") {:status 400
+                                                 :scimType :invalidSyntax
+                                                 :op (:op op)})))
 
     ;; sequence of operations
     (sequential? op)
     (reduce #(patch schema %1 %2) resource op)))
-
