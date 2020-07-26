@@ -1,3 +1,8 @@
+```
+If you're reading this, this is the Core-Services fork of Raghu's SCIM PATCH
+It provides a way to perform temporary releases of SCIM PATCH before they're officially released
+```
+
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
 [![Build Status](https://travis-ci.org/rkaippully/scim-patch.svg?branch=master)](https://travis-ci.org/rkaippully/scim-patch)
 [![codecov](https://codecov.io/gh/rkaippully/scim-patch/branch/master/graph/badge.svg)](https://codecov.io/gh/rkaippully/scim-patch)

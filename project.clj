@@ -1,4 +1,6 @@
-(defproject org.clojars.rkaippully/scim-patch "0.2.1"
+(defproject com.concur.core-services/scim-patch "0.2.2"
+  ;; If you're reading this, this is the Core-Services fork of Raghu's SCIM PATCH
+  ;; It provides a way to perform temporary releases of SCIM PATCH before they're officially released
   :description "A Clojure library that implements patch operations as specified by RFC7644"
   :url "https://github.com/rkaippully/scim-patch"
   :license {:name "Mozilla Public License v2.0"
