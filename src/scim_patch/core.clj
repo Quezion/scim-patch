@@ -10,17 +10,17 @@
         schema'  (get-in schema [:attributes attr-key])]
     (when (nil? schema')
       (throw (ex-info (str "Invalid path element")
-                      {:status   400
-                       :scimType :invalidPath
-                       :path attr})))
+               {:status   400
+                :scimType :invalidPath
+                :path attr})))
     (if (empty? attrs)
       (update-fn resource attr schema')
       (do
         (when (:multi-valued schema')
           (throw (ex-info (str "Unexpected multivalued path element")
-                          {:status   400
-                           :scimType :invalidPath
-                           :path attr})))
+                   {:status   400
+                    :scimType :invalidPath
+                    :path attr})))
         (update resource attr-key #(handle-attr-path-levels (:type schema') (or % {}) update-fn attrs))))))
 
 (defn handle-attr-path
@@ -62,8 +62,7 @@
                               (partial value-path-fn value value-filter subattr2))))))
     (catch ExceptionInfo e
       (throw (ex-info (.getMessage e)
-                      (-> (ex-data e)
-                          (assoc :path path)))))))
+                      (assoc (ex-data e) :path path))))))
 
 (defn value-for-add
   [schema old-val new-val]
@@ -106,8 +105,7 @@
               (update res (keyword attr) #(value-for-add sch % value))
               (catch ExceptionInfo e
                 (throw (ex-info (.getMessage e)
-                                (-> (ex-data e)
-                                    (assoc :path (:path opr))))))))
+                                (assoc (ex-data e) :path (:path opr)))))))
 
           (add-value-path
             [value value-filter subattr res attr sch]
@@ -121,8 +119,7 @@
                       #(doall (mapv (filter-and-add sch value value-filter subattr) %)))
               (catch ExceptionInfo e
                 (throw (ex-info (.getMessage e)
-                                (-> (ex-data e)
-                                    (assoc :path (:path opr))))))))]
+                                (assoc (ex-data e) :path (:path opr)))))))]
     (handle-operation schema resource opr add-attr-path add-value-path)))
 
 (defn filter-and-remove
