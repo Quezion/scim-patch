@@ -92,9 +92,9 @@
               schema'     (get-in schema [:type :attributes subattr-key])]
           (when (nil? schema')
             (throw (ex-info (str "Invalid path element")
-                            {:status   400
-                             :scimType :invalidPath
-                             :path subattr})))
+                     {:status   400
+                      :scimType :invalidPath
+                      :path subattr})))
           (update old-val subattr-key #(value-for-add schema' % new-val))))
       old-val)))
 
@@ -113,9 +113,9 @@
             [value value-filter subattr res attr sch]
             (when-not (:multi-valued sch)
               (throw (ex-info "Value filter can only be applied on multivalued attributes"
-                              {:status   400
-                               :scimType :invalidFilter
-                               :path (:path opr)})))
+                       {:status   400
+                        :scimType :invalidFilter
+                        :path (:path opr)})))
             (try
               (update res (keyword attr)
                       #(doall (mapv (filter-and-add sch value value-filter subattr) %)))
@@ -135,9 +135,9 @@
               schema'     (get-in schema [:type :attributes subattr-key])]
           (when (nil? schema')
             (throw (ex-info (str "Invalid path element")
-                            {:status   400
-                             :scimType :invalidPath
-                             :path subattr})))
+                     {:status   400
+                      :scimType :invalidPath
+                      :path subattr})))
           (conj acc (dissoc old-val subattr-key))))
       (conj acc old-val))))
 
@@ -185,9 +185,9 @@
                                 schema'     (get-in schema [:type :attributes subattr-key])]
                             (when (nil? schema')
                               (throw (ex-info (str "Invalid path element")
-                                              {:status   400
-                                               :scimType :invalidPath
-                                               :path subattr})))
+                                       {:status   400
+                                        :scimType :invalidPath
+                                        :path subattr})))
                             (assoc old-val subattr-key (value-for-replace schema' new-val)))))}
 
       ;; Filter did not match
