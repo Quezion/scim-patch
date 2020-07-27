@@ -173,9 +173,9 @@
   (testing "add operation: If the target location does not exist, the attribute and value are added"
     (is (= {:userName "foo"
             :name     {:formatted "bar"}}
-           (sut/patch schema {:userName "foo"} {:op    "add"
-                                                :path  "name"
-                                                :value {:formatted "bar"}})))))
+          (sut/patch schema {:userName "foo"} {:op    "add"
+                                               :path  "name"
+                                               :value {:formatted "bar"}})))))
 
 (deftest op-add-attrpath-filter
   (testing "add operation: simple attrpath filter"
@@ -241,26 +241,26 @@
   (testing "add operation: ne operator"
     (is (= {:phoneNumbers [{:type "Work" :value "3334445555"}
                            {:type "Home" :value "2223334444"}]}
-           (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
+          (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
                                              {:type "Home" :value "2223334444"}]}
-                      {:op    "add"
-                       :path  "phoneNumbers[type ne \"Home\"]"
-                       :value {:type "Work" :value "3334445555"}}))))
+            {:op    "add"
+             :path  "phoneNumbers[type ne \"Home\"]"
+             :value {:type "Work" :value "3334445555"}}))))
 
   (testing "add operation: co operator"
     (is (= {:phoneNumbers [{:type "Work" :value "3334445555"}
                            {:type "Home" :value "2223334444"}]}
-           (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
+          (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
                                              {:type "Home" :value "2223334444"}]}
-                      {:op    "add"
-                       :path  "phoneNumbers[type co \"or\"]"
-                       :value {:type "Work" :value "3334445555"}}))))
+            {:op    "add"
+             :path  "phoneNumbers[type co \"or\"]"
+             :value {:type "Work" :value "3334445555"}}))))
 
   (testing "add operation: sw operator"
     (is (= {:phoneNumbers [{:type "Work" :value "3334445555"}
                            {:type "Home" :value "2223334444"}]}
           (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
-                                             {:type "Home" :value "2223334444"}]}
+                                            {:type "Home" :value "2223334444"}]}
             {:op    "add"
              :path  "phoneNumbers[type sw \"Wo\"]"
              :value {:type "Work" :value "3334445555"}}))))
@@ -382,13 +382,13 @@
     (is (= {:userName     "foo"
             :phoneNumbers [{:value "555-555-4444"
                             :type  "mobile"}]}
-           (sut/patch schema {:userName     "foo"
-                              :phoneNumbers [{:value "555-555-5555"
-                                              :type  "work"}
-                                             {:value "555-555-4444"
-                                              :type  "mobile"}]}
-                      {:op   "remove"
-                       :path "phoneNumbers[type eq \"work\"]"}))))
+          (sut/patch schema {:userName     "foo"
+                             :phoneNumbers [{:value "555-555-5555"
+                                             :type  "work"}
+                                            {:value "555-555-4444"
+                                             :type  "mobile"}]}
+            {:op   "remove"
+             :path "phoneNumbers[type eq \"work\"]"}))))
 
   (testing "remove operation: multi valued attribute, value filter, complex conditions"
     (is (= {:userName     "foo"
@@ -406,15 +406,15 @@
 
   (testing "remove operation: multi valued attribute, value filter, all values removed"
     (is (= {:userName "foo"}
-           (sut/patch schema {:userName     "foo"
-                              :phoneNumbers [{:value "555-555-5555"
-                                              :type  "work"}
-                                             {:value "555-555-4444"
-                                              :type  "mobile"}
-                                             {:value "111-555-3333"
-                                              :type  "other"}]}
-                      {:op   "remove"
-                       :path "phoneNumbers[value co \"-555-\"]"}))))
+          (sut/patch schema {:userName     "foo"
+                             :phoneNumbers [{:value "555-555-5555"
+                                             :type  "work"}
+                                            {:value "555-555-4444"
+                                             :type  "mobile"}
+                                            {:value "111-555-3333"
+                                             :type  "other"}]}
+            {:op   "remove"
+             :path "phoneNumbers[value co \"-555-\"]"}))))
 
   (testing "remove operation: filter on scalar attribute"
     (is (= {:status 400 :scimType :invalidFilter :path "userName[number eq 1]"}
@@ -456,12 +456,12 @@
                             :type  "mobile"}]}
           (sut/patch schema {:phoneNumbers [{:value "111-222-3333"
                                              :type  "other"}]}
-                     {:op    "replace"
-                      :path  "phoneNumbers"
-                      :value [{:value "555-555-5555"
-                               :type  "work"}
-                              {:value "555-555-4444"
-                               :type  "mobile"}]})))))
+            {:op    "replace"
+             :path  "phoneNumbers"
+             :value [{:value "555-555-5555"
+                      :type  "work"}
+                     {:value "555-555-4444"
+                      :type  "mobile"}]})))))
 
 (deftest op-replace-attr-path-level-2
   (testing "replace operation, no filter, single valued, subattribute, level 2"
@@ -539,7 +539,7 @@
     (is (= {:phoneNumbers [{:type "Work" :value "1112223333"}
                            {:type "Home" :value "3334445555"}]}
           (sut/patch schema {:phoneNumbers [{:type "Work" :value "1112223333"}
-                                             {:type "Home" :value "2223334444"}]}
+                                            {:type "Home" :value "2223334444"}]}
             {:op    "replace"
              :path  "phoneNumbers[type eq \"Home\"]"
              :value {:type "Home" :value "3334445555"}}))))
