@@ -119,7 +119,7 @@
             (try
               (update res (keyword attr)
                 #(let [mapfn (if (vector? %) mapv map)]
-                  (doall (mapfn (filter-and-add sch value value-filter subattr) %)))))
+                  (doall (mapfn (filter-and-add sch value value-filter subattr) %))))
               (catch ExceptionInfo e
                 (throw (ex-info (.getMessage e)
                                 (assoc (ex-data e) :path (:path opr)))))))]
